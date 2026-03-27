@@ -1,0 +1,13 @@
+{
+  "name": "web-chat-first-glance",
+  "private": true,
+  "packageManager": "yarn@4.12.0",
+  "scripts": {
+    "contracts:sync": "yarn --cwd backend generate:openapi && yarn --cwd frontend generate:api-types && yarn --cwd backend generate:ws-types",
+    "contracts:check": "yarn contracts:sync && git diff --exit-code -- backend/generated/openapi.json frontend/src/generated/api-types.ts frontend/src/generated/ws-contracts.ts",
+    "lint": "yarn --cwd backend lint && yarn --cwd frontend lint",
+    "typecheck": "yarn --cwd backend typecheck && yarn --cwd frontend typecheck",
+    "test": "yarn --cwd backend test && yarn --cwd frontend test",
+    "format:check": "yarn --cwd backend format:check && yarn --cwd frontend format:check"
+  }
+}

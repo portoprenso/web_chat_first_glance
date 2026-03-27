@@ -1,0 +1,77 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: chat_app
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d chat_app"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/chat_app?schema=public
+      FRONTEND_ORIGIN: http://localhost:5173
+      JWT_ACCESS_SECRET: ci-only-secret-value-for-chat-backend-1234
+      NODE_ENV: test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install root dependencies
+        run: yarn install --immutable
+
+      - name: Install backend dependencies
+        run: yarn --cwd backend install --immutable
+
+      - name: Install frontend dependencies
+        run: yarn --cwd frontend install --immutable
+
+      - name: Generate Prisma client
+        run: yarn --cwd backend prisma:generate
+
+      - name: Apply database migrations
+        run: yarn --cwd backend prisma:deploy
+
+      - name: Verify contracts are current
+        run: yarn contracts:check
+
+      - name: Format check
+        run: yarn format:check
+
+      - name: Lint
+        run: yarn lint
+
+      - name: Typecheck
+        run: yarn typecheck
+
+      - name: Frontend tests
+        run: yarn --cwd frontend test
+
+      - name: Backend tests
+        run: yarn --cwd backend test

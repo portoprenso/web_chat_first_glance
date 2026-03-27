@@ -1,0 +1,89 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                  String            @id @default(cuid())
+  email               String            @unique
+  passwordHash        String
+  displayName         String
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  refreshSessions     RefreshSession[]
+  chatParticipants    ChatParticipant[]
+  sentMessages        Message[]         @relation("SentMessages")
+  uploadedAttachments Attachment[]      @relation("UploadedAttachments")
+}
+
+model RefreshSession {
+  id                  String    @id @default(cuid())
+  userId              String
+  tokenHash           String    @unique
+  expiresAt           DateTime
+  revokedAt           DateTime?
+  createdAt           DateTime  @default(now())
+  lastUsedAt          DateTime?
+  userAgent           String?
+  ipAddress           String?
+  replacedBySessionId String?
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Chat {
+  id            String            @id @default(cuid())
+  directChatKey String            @unique
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  participants  ChatParticipant[]
+  messages      Message[]
+}
+
+model ChatParticipant {
+  id       String   @id @default(cuid())
+  chatId   String
+  userId   String
+  joinedAt DateTime @default(now())
+  chat     Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([chatId, userId])
+  @@index([userId])
+}
+
+model Message {
+  id          String       @id @default(cuid())
+  chatId      String
+  senderId    String
+  body        String?
+  createdAt   DateTime     @default(now())
+  chat        Chat         @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  sender      User         @relation("SentMessages", fields: [senderId], references: [id], onDelete: Restrict)
+  attachments Attachment[]
+
+  @@index([chatId, createdAt(sort: Desc)])
+  @@index([senderId])
+}
+
+model Attachment {
+  id           String    @id @default(cuid())
+  messageId    String?
+  uploadedById String
+  storageKey   String    @unique
+  originalName String
+  mimeType     String
+  sizeBytes    Int
+  createdAt    DateTime  @default(now())
+  message      Message?  @relation(fields: [messageId], references: [id], onDelete: SetNull)
+  uploadedBy   User      @relation("UploadedAttachments", fields: [uploadedById], references: [id], onDelete: Cascade)
+
+  @@index([messageId])
+  @@index([uploadedById])
+}

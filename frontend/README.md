@@ -1,0 +1,47 @@
+# Frontend
+
+React + TypeScript + Vite client for the chat product.
+
+## Main Structure
+
+- `src/app`: providers, router, query client
+- `src/components`: shared UI shells and route guards
+- `src/features/auth`: auth forms, schemas, API calls
+- `src/features/chats`: chat UI, hooks, typed API calls, realtime integration
+- `src/generated`: backend-generated REST and WebSocket contract artifacts
+- `src/lib`: API client, config, formatting, websocket client
+- `src/store`: Zustand auth and socket state
+- `src/test`: Vitest, Testing Library, MSW helpers
+
+## Auth Strategy
+
+- Access token and user session are held in Zustand memory state.
+- On boot, the app calls `/auth/refresh` using `credentials: 'include'`.
+- On success, the backend rotates the refresh token cookie and returns a new access token.
+- Protected routes block until bootstrap finishes.
+
+## Realtime Strategy
+
+- `ChatSocketClient` connects to `/ws`.
+- On open, it sends the current access token in an `auth.authenticate` event.
+- `message.created` appends into the relevant TanStack Query cache with message-id dedupe.
+- `chat.created` and `message.created` invalidate the chat list.
+- If the socket is rejected with token expiry, the client runs the refresh flow and reconnects.
+
+## Commands
+
+```bash
+yarn install
+yarn generate:api-types
+yarn dev
+yarn lint
+yarn typecheck
+yarn test
+```
+
+## Tests
+
+- Login form validation
+- Protected route redirect behavior
+- Chat page rendering from mocked API history
+- Query cache updates from mocked WebSocket events
