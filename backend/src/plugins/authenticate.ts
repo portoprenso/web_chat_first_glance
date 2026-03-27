@@ -6,7 +6,7 @@ import { AppError } from '../lib/errors.js';
 export const authenticatePlugin = fp((app, _opts, done) => {
   app.decorateRequest('user', null);
 
-  app.decorate('authenticate', (request, reply) => {
+  app.decorate('authenticate', async (request, reply) => {
     void reply;
     const authorizationHeader = request.headers.authorization;
 

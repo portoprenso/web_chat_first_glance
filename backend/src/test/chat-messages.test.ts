@@ -23,6 +23,25 @@ describe('chat and message flows', () => {
     await context.cleanup();
   });
 
+  it('lists chats for an authenticated user', async () => {
+    const alice = await registerUser(context.app, {
+      email: 'alice@example.com',
+      password: 'password123',
+      displayName: 'Alice',
+    });
+
+    const response = await context.app.inject({
+      method: 'GET',
+      url: '/chats',
+      headers: authHeaders(alice.session.accessToken),
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(parseJsonBody<{ items: unknown[] }>(response.body)).toEqual({
+      items: [],
+    });
+  });
+
   it('opens a direct chat and sends messages', async () => {
     const alice = await registerUser(context.app, {
       email: 'alice@example.com',

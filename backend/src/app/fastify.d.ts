@@ -11,7 +11,7 @@ declare module 'fastify' {
     prisma: PrismaClient;
     storage: FileStorage;
     websocketHub: WebSocketHub;
-    authenticate: (request: FastifyRequest, reply: FastifyReply) => void;
+    authenticate: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
   }
 
   interface FastifyRequest {
