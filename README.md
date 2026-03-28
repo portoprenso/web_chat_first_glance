@@ -50,7 +50,7 @@ yarn dev:backend
 yarn dev:frontend
 ```
 
-Open the app at `http://localhost:5173`. In Vite dev mode, the frontend now talks directly to the backend at `http://localhost:3000`, so you do not need `nginx` for the normal local loop. The `docker compose` database container is optional but handy when you want PostgreSQL without installing it locally, and the backend itself can run directly on your machine with localhost-friendly defaults outside production.
+Open the app at `http://localhost:5173`. When you access the app directly from the Vite dev server on port `5173`, the frontend talks straight to the backend on the same host at port `3000`, so you do not need `nginx` for the normal local loop. When the frontend sits behind `nginx` in Docker, it falls back to the browser origin and uses the reverse proxy as expected. The `docker compose` database container is optional but handy when you want PostgreSQL without installing it locally, and the backend itself can run directly on your machine with localhost-friendly defaults outside production.
 
 `yarn dev:backend:init` is the local helper for Prisma client generation and migrations against the default localhost database. Run it on first setup and after schema changes.
 

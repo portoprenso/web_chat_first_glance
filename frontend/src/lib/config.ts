@@ -5,35 +5,70 @@ const configSchema = z.object({
   VITE_WS_URL: z.string().url().optional(),
 });
 
-function isLocalDevMode(): boolean {
-  return import.meta.env.DEV || import.meta.env.MODE === 'test';
+const LOCAL_BACKEND_PORT = '3000';
+const VITE_DEV_SERVER_PORT = '5173';
+
+function isTestMode(): boolean {
+  return import.meta.env.MODE === 'test';
 }
 
-function getBrowserOrigin(): string | null {
+function getBrowserUrl(): URL | null {
   if (typeof window === 'undefined' || !window.location.origin || window.location.origin === 'null') {
     return null;
   }
 
-  return window.location.origin;
+  return new URL(window.location.origin);
+}
+
+function getBrowserOrigin(): string | null {
+  return getBrowserUrl()?.toString() ?? null;
+}
+
+function getDirectViteBackendOrigin(): string | null {
+  if (!import.meta.env.DEV) {
+    return null;
+  }
+
+  const browserUrl = getBrowserUrl();
+
+  if (!browserUrl || browserUrl.port !== VITE_DEV_SERVER_PORT) {
+    return null;
+  }
+
+  browserUrl.protocol = 'http:';
+  browserUrl.port = LOCAL_BACKEND_PORT;
+  browserUrl.pathname = '/';
+  browserUrl.search = '';
+  browserUrl.hash = '';
+
+  return browserUrl.toString();
 }
 
 function getDefaultApiUrl(): string {
-  if (isLocalDevMode()) {
-    return 'http://localhost:3000';
+  if (isTestMode()) {
+    return `http://localhost:${LOCAL_BACKEND_PORT}`;
   }
 
-  return getBrowserOrigin() ?? 'http://localhost:3000';
+  return getDirectViteBackendOrigin() ?? getBrowserOrigin() ?? `http://localhost:${LOCAL_BACKEND_PORT}`;
 }
 
 function getDefaultWebSocketUrl(): string {
-  if (isLocalDevMode()) {
-    return 'ws://localhost:3000/api/ws';
+  if (isTestMode()) {
+    return `ws://localhost:${LOCAL_BACKEND_PORT}/api/ws`;
+  }
+
+  const directViteBackendOrigin = getDirectViteBackendOrigin();
+
+  if (directViteBackendOrigin) {
+    const url = new URL('/api/ws', directViteBackendOrigin);
+    url.protocol = 'ws:';
+    return url.toString();
   }
 
   const browserOrigin = getBrowserOrigin();
 
   if (!browserOrigin) {
-    return 'ws://localhost:3000/api/ws';
+    return `ws://localhost:${LOCAL_BACKEND_PORT}/api/ws`;
   }
 
   const url = new URL('/api/ws', browserOrigin);
