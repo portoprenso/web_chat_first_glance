@@ -16,17 +16,23 @@ React + TypeScript + Vite client for the chat product.
 ## Auth Strategy
 
 - Access token and user session are held in Zustand memory state.
-- On boot, the app calls `/auth/refresh` using `credentials: 'include'`.
+- On boot, the app calls `/api/auth/refresh` using `credentials: 'include'`.
 - On success, the backend rotates the refresh token cookie and returns a new access token.
 - Protected routes block until bootstrap finishes.
 
 ## Realtime Strategy
 
-- `ChatSocketClient` connects to `/ws`.
+- `ChatSocketClient` connects to `/api/ws`.
 - On open, it sends the current access token in an `auth.authenticate` event.
 - `message.created` appends into the relevant TanStack Query cache with message-id dedupe.
 - `chat.created` and `message.created` invalidate the chat list.
 - If the socket is rejected with token expiry, the client runs the refresh flow and reconnects.
+
+## Runtime Config
+
+- By default, the client uses the current browser origin for HTTP requests and `ws://<current-host>/api/ws` or `wss://<current-host>/api/ws` for realtime.
+- `VITE_API_URL` and `VITE_WS_URL` are optional overrides.
+- During local host development, Vite proxies `/api` and `/api/ws` to `http://localhost:3000`.
 
 ## Commands
 

@@ -6,6 +6,7 @@ import type { FastifyInstance } from 'fastify';
 import type { PrismaClient } from '@prisma/client';
 
 import { buildApp } from '../app/build-app.js';
+import { AUTH_COOKIE_PATH, apiRoute } from '../app/routes.js';
 import { createConfig } from '../config/env.js';
 import { createPrismaClient } from '../lib/db.js';
 import { LocalFileStorage } from '../storage/local-file-storage.js';
@@ -20,6 +21,16 @@ type Session = {
     id: string;
   };
 };
+
+type SessionResult = {
+  cookie: string;
+  session: Session;
+  setCookieHeader: string;
+};
+
+function getSetCookieHeader(value: string | string[] | undefined): string {
+  return Array.isArray(value) ? value.join('; ') : value ?? '';
+}
 
 export async function createTestContext(): Promise<{
   app: FastifyInstance;
@@ -80,10 +91,10 @@ export async function registerUser(
     email: string;
     password: string;
   },
-): Promise<{ cookie: string; session: Session }> {
+): Promise<SessionResult> {
   const response = await app.inject({
     method: 'POST',
-    url: '/auth/register',
+    url: apiRoute('/auth/register'),
     payload: input,
   });
 
@@ -102,6 +113,7 @@ export async function registerUser(
   return {
     cookie: `${cookie.name}=${cookie.value}`,
     session: response.json(),
+    setCookieHeader: getSetCookieHeader(response.headers['set-cookie']),
   };
 }
 
@@ -111,10 +123,10 @@ export async function loginUser(
     email: string;
     password: string;
   },
-): Promise<{ cookie: string; session: Session }> {
+): Promise<SessionResult> {
   const response = await app.inject({
     method: 'POST',
-    url: '/auth/login',
+    url: apiRoute('/auth/login'),
     payload: input,
   });
 
@@ -133,6 +145,7 @@ export async function loginUser(
   return {
     cookie: `${cookie.name}=${cookie.value}`,
     session: response.json(),
+    setCookieHeader: getSetCookieHeader(response.headers['set-cookie']),
   };
 }
 
@@ -164,3 +177,5 @@ export function buildMultipartBody(fileName: string, content: string) {
 export function parseJsonBody<T>(body: string): T {
   return JSON.parse(body) as T;
 }
+
+export { AUTH_COOKIE_PATH, apiRoute };

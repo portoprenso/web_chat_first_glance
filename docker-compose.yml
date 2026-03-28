@@ -29,7 +29,7 @@ services:
       NODE_ENV: development
       PORT: 3000
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/chat_app?schema=public
-      FRONTEND_ORIGIN: http://localhost:5173
+      FRONTEND_ORIGIN: http://localhost:8080
       JWT_ACCESS_SECRET: development-only-contract-generation-secret-1234
       ACCESS_TOKEN_TTL_MINUTES: 15
       REFRESH_TOKEN_TTL_DAYS: 14
@@ -37,8 +37,6 @@ services:
       STORAGE_DIR: /app/storage-data
       MAX_UPLOAD_BYTES: 10485760
       SWAGGER_ENABLED: 'true'
-    ports:
-      - '3000:3000'
     volumes:
       - ./backend:/app
       - backend_node_modules:/app/node_modules
@@ -52,14 +50,20 @@ services:
     depends_on:
       - backend
     command: sh -c "yarn install && yarn dev"
-    environment:
-      VITE_API_URL: http://localhost:3000
-      VITE_WS_URL: ws://localhost:3000/ws
-    ports:
-      - '5173:5173'
     volumes:
       - ./frontend:/app
       - frontend_node_modules:/app/node_modules
+
+  nginx:
+    image: nginx:alpine
+    container_name: first-glance-nginx
+    depends_on:
+      - backend
+      - frontend
+    ports:
+      - '8080:80'
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
 
 volumes:
   postgres_data:

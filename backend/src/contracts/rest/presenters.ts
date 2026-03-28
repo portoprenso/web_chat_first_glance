@@ -1,5 +1,7 @@
 import type { Attachment, Chat, ChatParticipant, Message, User } from '@prisma/client';
 
+import { apiRoute } from '../../app/routes.js';
+
 export function toUserDto(user: User) {
   return {
     id: user.id,
@@ -23,7 +25,7 @@ export function toAttachmentDto(attachment: Attachment) {
     originalName: attachment.originalName,
     mimeType: attachment.mimeType,
     sizeBytes: attachment.sizeBytes,
-    downloadPath: `/attachments/${attachment.id}/download`,
+    downloadPath: apiRoute(`/attachments/${attachment.id}/download`),
     createdAt: attachment.createdAt.toISOString(),
   };
 }

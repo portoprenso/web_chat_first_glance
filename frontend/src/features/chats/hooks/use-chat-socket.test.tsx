@@ -24,6 +24,7 @@ let latestOptions:
           };
         };
       }) => void;
+      url: string;
       connect: () => void;
       disconnect: () => void;
     }
@@ -31,9 +32,10 @@ let latestOptions:
 
 vi.mock('../../../lib/ws/chat-socket', () => ({
   ChatSocketClient: class {
-    constructor(options: { onEvent: (event: never) => void }) {
+    constructor(options: { onEvent: (event: never) => void; url: string }) {
       latestOptions = {
         onEvent: options.onEvent as typeof latestOptions extends { onEvent: infer T } ? T : never,
+        url: options.url,
         connect: vi.fn(),
         disconnect: vi.fn(),
       };
@@ -92,6 +94,10 @@ describe('useChatSocket', () => {
         <Harness />
       </QueryClientProvider>,
     );
+
+    const expectedSocketUrl = new URL('/api/ws', window.location.origin);
+    expectedSocketUrl.protocol = expectedSocketUrl.protocol === 'https:' ? 'wss:' : 'ws:';
+    expect(latestOptions?.url).toBe(expectedSocketUrl.toString());
 
     latestOptions?.onEvent({
       type: 'message.created',

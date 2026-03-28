@@ -24,6 +24,7 @@ import { authenticatePlugin } from '../plugins/authenticate.js';
 import { LocalFileStorage } from '../storage/local-file-storage.js';
 import type { FileStorage } from '../storage/storage.types.js';
 import { WebSocketHub } from '../websocket/websocket-hub.js';
+import { API_DOCS_ROUTE, API_HEALTH_ROUTE, API_PREFIX, API_WEBSOCKET_ROUTE } from './routes.js';
 
 type BuildAppOptions = {
   config?: AppConfig;
@@ -124,7 +125,7 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
       },
       servers: [
         {
-          url: 'http://localhost:3000',
+          url: '/',
         },
       ],
       components: {
@@ -142,7 +143,7 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
 
   if (config.SWAGGER_ENABLED) {
     await app.register(swaggerUi, {
-      routePrefix: '/docs',
+      routePrefix: API_DOCS_ROUTE,
     });
   }
 
@@ -167,15 +168,15 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   await app.register(websocket);
   await app.register(authenticatePlugin);
 
-  await app.register(authRoutes);
-  await app.register(chatRoutes);
-  await app.register(messageRoutes);
-  await app.register(attachmentRoutes);
+  await app.register(authRoutes, { prefix: API_PREFIX });
+  await app.register(chatRoutes, { prefix: API_PREFIX });
+  await app.register(messageRoutes, { prefix: API_PREFIX });
+  await app.register(attachmentRoutes, { prefix: API_PREFIX });
 
-  app.get('/health', () => ({ ok: true }));
+  app.get(API_HEALTH_ROUTE, () => ({ ok: true }));
 
   app.get(
-    '/ws',
+    API_WEBSOCKET_ROUTE,
     {
       websocket: true,
       schema: {

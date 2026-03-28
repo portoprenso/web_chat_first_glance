@@ -23,17 +23,23 @@ Fastify + TypeScript + Prisma backend for the chat product.
 - Access tokens are short-lived JWTs.
 - Refresh tokens are opaque random secrets hashed with SHA-256 before persistence.
 - Refresh sessions are rotated on every refresh and revoked on logout.
-- Private REST routes require `Authorization: Bearer <access-token>`.
-- WebSocket auth happens through a first-frame `auth.authenticate` event carrying the access token.
+- Private REST routes are namespaced under `/api` and require `Authorization: Bearer <access-token>`.
+- WebSocket auth happens on `/api/ws` through a first-frame `auth.authenticate` event carrying the access token.
 
 ## Attachment Model
 
-- Upload uses `multipart/form-data` on `POST /attachments`.
+- Upload uses `multipart/form-data` on `POST /api/attachments`.
 - Max upload size is configured through `MAX_UPLOAD_BYTES`.
 - Files are stored in `STORAGE_DIR`.
 - Metadata is persisted in PostgreSQL.
-- Downloads are gated through `GET /attachments/:attachmentId/download`.
+- Downloads are gated through `GET /api/attachments/:attachmentId/download`.
 - The `FileStorage` interface isolates the future S3 migration point.
+
+## Runtime Surface
+
+- Swagger UI is served at `/api/docs`.
+- Health is served at `/api/health`.
+- The Docker workflow puts `nginx` in front of the frontend and backend so the app can be exposed through one public origin.
 
 ## Contract Generation
 

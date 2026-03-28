@@ -15,7 +15,7 @@
     "schemas": {}
   },
   "paths": {
-    "/auth/register": {
+    "/api/auth/register": {
       "post": {
         "operationId": "register",
         "tags": [
@@ -149,7 +149,7 @@
         }
       }
     },
-    "/auth/login": {
+    "/api/auth/login": {
       "post": {
         "operationId": "login",
         "tags": [
@@ -277,7 +277,7 @@
         }
       }
     },
-    "/auth/refresh": {
+    "/api/auth/refresh": {
       "post": {
         "operationId": "refreshSession",
         "tags": [
@@ -379,7 +379,7 @@
         }
       }
     },
-    "/auth/logout": {
+    "/api/auth/logout": {
       "post": {
         "operationId": "logout",
         "tags": [
@@ -411,7 +411,7 @@
         }
       }
     },
-    "/chats": {
+    "/api/chats": {
       "get": {
         "operationId": "listChats",
         "tags": [
@@ -558,7 +558,7 @@
         }
       }
     },
-    "/chats/direct": {
+    "/api/chats/direct": {
       "post": {
         "operationId": "openDirectChat",
         "tags": [
@@ -753,7 +753,7 @@
         }
       }
     },
-    "/chats/{chatId}/messages": {
+    "/api/chats/{chatId}/messages": {
       "get": {
         "operationId": "listMessages",
         "tags": [
@@ -1202,7 +1202,7 @@
         }
       }
     },
-    "/attachments": {
+    "/api/attachments": {
       "post": {
         "operationId": "uploadAttachment",
         "tags": [
@@ -1312,7 +1312,7 @@
         }
       }
     },
-    "/attachments/{attachmentId}/download": {
+    "/api/attachments/{attachmentId}/download": {
       "get": {
         "operationId": "downloadAttachment",
         "tags": [
@@ -1413,7 +1413,7 @@
         }
       }
     },
-    "/health": {
+    "/api/health": {
       "get": {
         "responses": {
           "200": {
@@ -1425,7 +1425,7 @@
   },
   "servers": [
     {
-      "url": "http://localhost:3000"
+      "url": "/"
     }
   ]
 }

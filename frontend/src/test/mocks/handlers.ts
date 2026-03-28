@@ -1,7 +1,7 @@
 import { http, HttpResponse } from 'msw';
 
 export const handlers = [
-  http.post('http://localhost:3000/auth/refresh', () =>
+  http.post('http://localhost:3000/api/auth/refresh', () =>
     HttpResponse.json(
       {
         accessToken: 'restored-token',
@@ -16,7 +16,7 @@ export const handlers = [
       { status: 200 },
     ),
   ),
-  http.post('http://localhost:3000/auth/login', () =>
+  http.post('http://localhost:3000/api/auth/login', () =>
     HttpResponse.json(
       {
         accessToken: 'login-token',
@@ -31,7 +31,7 @@ export const handlers = [
       { status: 200 },
     ),
   ),
-  http.post('http://localhost:3000/auth/register', () =>
+  http.post('http://localhost:3000/api/auth/register', () =>
     HttpResponse.json(
       {
         accessToken: 'register-token',
@@ -46,7 +46,7 @@ export const handlers = [
       { status: 201 },
     ),
   ),
-  http.post('http://localhost:3000/auth/logout', () =>
+  http.post('http://localhost:3000/api/auth/logout', () =>
     HttpResponse.json(
       {
         success: true,
@@ -54,7 +54,7 @@ export const handlers = [
       { status: 200 },
     ),
   ),
-  http.get('http://localhost:3000/chats', () =>
+  http.get('http://localhost:3000/api/chats', () =>
     HttpResponse.json(
       {
         items: [
@@ -80,7 +80,7 @@ export const handlers = [
       { status: 200 },
     ),
   ),
-  http.get('http://localhost:3000/chats/chat-1/messages', () =>
+  http.get('http://localhost:3000/api/chats/chat-1/messages', () =>
     HttpResponse.json(
       {
         items: [

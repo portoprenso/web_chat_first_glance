@@ -9,8 +9,8 @@ There is no shared workspace package. The backend owns the contracts and synchro
 
 ## Architecture
 
-- REST is the source of truth for registration, login, refresh, chat creation, chat list, message history, message creation, and attachment upload/download.
-- Native WebSocket is used for authenticated realtime delivery of `chat.created` and `message.created` events.
+- REST is namespaced under `/api` for registration, login, refresh, chat creation, chat list, message history, message creation, and attachment upload/download.
+- Native WebSocket is exposed at `/api/ws` for authenticated realtime delivery of `chat.created` and `message.created` events.
 - Access tokens are short-lived JWTs stored only in frontend memory.
 - Refresh tokens are opaque, persisted in PostgreSQL, rotated on refresh, and transported through an HTTP-only cookie.
 - Attachments are stored on the local filesystem behind a storage abstraction so S3-compatible storage can replace it later.
@@ -50,7 +50,9 @@ yarn --cwd backend dev
 yarn --cwd frontend dev
 ```
 
-Required backend env values are in [backend/.env.example](/Users/home/Desktop/web_chat_first_glance/backend/.env.example). Frontend env values are in [frontend/.env.example](/Users/home/Desktop/web_chat_first_glance/frontend/.env.example).
+Open the app at `http://localhost:5173`. Vite proxies `/api` and `/api/ws` to the backend, so the browser still uses a single origin in local development.
+
+Required backend env values are in [backend/.env.example](/Users/home/Desktop/web_chat_first_glance/backend/.env.example). Frontend env overrides are optional and documented in [frontend/.env.example](/Users/home/Desktop/web_chat_first_glance/frontend/.env.example).
 
 Docker workflow:
 
@@ -58,7 +60,13 @@ Docker workflow:
 docker compose up --build
 ```
 
-This starts PostgreSQL, backend, and frontend. Uploaded files persist in the `backend_storage` volume.
+This starts PostgreSQL, backend, frontend, and an `nginx` reverse proxy. Open the app at `http://localhost:8080`; uploaded files persist in the `backend_storage` volume.
+
+To expose the whole app through one `ngrok` tunnel:
+
+```bash
+ngrok http 8080
+```
 
 ## Verification
 

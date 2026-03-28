@@ -3,6 +3,7 @@ import WebSocket from 'ws';
 
 import {
   authHeaders,
+  apiRoute,
   createTestContext,
   parseJsonBody,
   registerUser,
@@ -38,7 +39,7 @@ describe('websocket delivery', () => {
 
     const chat = await context.app.inject({
       method: 'POST',
-      url: '/chats/direct',
+      url: apiRoute('/chats/direct'),
       headers: authHeaders(alice.session.accessToken),
       payload: {
         participantEmail: 'bob@example.com',
@@ -58,7 +59,7 @@ describe('websocket delivery', () => {
     }
 
     const eventPromise = new Promise<Record<string, unknown>>((resolve, reject) => {
-      const socket = new WebSocket(`ws://127.0.0.1:${address.port}/ws`);
+      const socket = new WebSocket(`ws://127.0.0.1:${address.port}${apiRoute('/ws')}`);
 
       socket.once('open', () => {
         socket.send(
@@ -93,7 +94,7 @@ describe('websocket delivery', () => {
 
     const sendMessage = await context.app.inject({
       method: 'POST',
-      url: `/chats/${chatPayload.id}/messages`,
+      url: apiRoute(`/chats/${chatPayload.id}/messages`),
       headers: authHeaders(alice.session.accessToken),
       payload: {
         body: 'Realtime hello',

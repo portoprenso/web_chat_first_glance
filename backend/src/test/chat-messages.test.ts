@@ -2,6 +2,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 import {
   authHeaders,
+  apiRoute,
   createTestContext,
   parseJsonBody,
   registerUser,
@@ -32,7 +33,7 @@ describe('chat and message flows', () => {
 
     const response = await context.app.inject({
       method: 'GET',
-      url: '/chats',
+      url: apiRoute('/chats'),
       headers: authHeaders(alice.session.accessToken),
     });
 
@@ -56,7 +57,7 @@ describe('chat and message flows', () => {
 
     const chatResponse = await context.app.inject({
       method: 'POST',
-      url: '/chats/direct',
+      url: apiRoute('/chats/direct'),
       headers: authHeaders(alice.session.accessToken),
       payload: {
         participantEmail: 'bob@example.com',
@@ -68,7 +69,7 @@ describe('chat and message flows', () => {
 
     const messageResponse = await context.app.inject({
       method: 'POST',
-      url: `/chats/${chat.id}/messages`,
+      url: apiRoute(`/chats/${chat.id}/messages`),
       headers: authHeaders(alice.session.accessToken),
       payload: {
         body: 'Hello Bob',
@@ -84,7 +85,7 @@ describe('chat and message flows', () => {
 
     const listResponse = await context.app.inject({
       method: 'GET',
-      url: `/chats/${chat.id}/messages`,
+      url: apiRoute(`/chats/${chat.id}/messages`),
       headers: authHeaders(alice.session.accessToken),
     });
     const listPayload = parseJsonBody<{

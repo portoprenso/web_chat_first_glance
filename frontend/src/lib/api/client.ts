@@ -125,7 +125,7 @@ export async function refreshSessionRequest(): Promise<boolean> {
       try {
         const response = await rawRequest({
           method: 'POST',
-          path: '/auth/refresh',
+          path: '/api/auth/refresh',
           skipAuth: true,
           skipRefresh: true,
         });

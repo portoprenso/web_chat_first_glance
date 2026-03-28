@@ -1,7 +1,9 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 import {
+  AUTH_COOKIE_PATH,
   authHeaders,
+  apiRoute,
   createTestContext,
   parseJsonBody,
   registerUser,
@@ -32,10 +34,11 @@ describe('auth flows', () => {
 
     expect(register.session.user.email).toBe('alice@example.com');
     expect(register.session.accessToken).toBeTruthy();
+    expect(register.setCookieHeader).toContain(`Path=${AUTH_COOKIE_PATH}`);
 
     const refreshResponse = await context.app.inject({
       method: 'POST',
-      url: '/auth/refresh',
+      url: apiRoute('/auth/refresh'),
       headers: {
         cookie: register.cookie,
       },
@@ -49,7 +52,7 @@ describe('auth flows', () => {
 
     const protectedResponse = await context.app.inject({
       method: 'GET',
-      url: '/chats',
+      url: apiRoute('/chats'),
       headers: authHeaders(register.session.accessToken),
     });
 
@@ -57,7 +60,7 @@ describe('auth flows', () => {
 
     const logoutResponse = await context.app.inject({
       method: 'POST',
-      url: '/auth/logout',
+      url: apiRoute('/auth/logout'),
       headers: {
         cookie: register.cookie,
       },
@@ -67,7 +70,7 @@ describe('auth flows', () => {
 
     const staleRefresh = await context.app.inject({
       method: 'POST',
-      url: '/auth/refresh',
+      url: apiRoute('/auth/refresh'),
       headers: {
         cookie: register.cookie,
       },
@@ -79,7 +82,7 @@ describe('auth flows', () => {
   it('rejects protected endpoints without an access token', async () => {
     const response = await context.app.inject({
       method: 'GET',
-      url: '/chats',
+      url: apiRoute('/chats'),
     });
     const payload = parseJsonBody<{
       error: {

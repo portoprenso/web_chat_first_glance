@@ -2,6 +2,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 import {
   authHeaders,
+  apiRoute,
   buildMultipartBody,
   createTestContext,
   parseJsonBody,
@@ -38,7 +39,7 @@ describe('attachment flows', () => {
 
     const chat = await context.app.inject({
       method: 'POST',
-      url: '/chats/direct',
+      url: apiRoute('/chats/direct'),
       headers: authHeaders(alice.session.accessToken),
       payload: {
         participantEmail: 'bob@example.com',
@@ -48,7 +49,7 @@ describe('attachment flows', () => {
     const multipart = buildMultipartBody('note.txt', 'attachment payload');
     const uploadResponse = await context.app.inject({
       method: 'POST',
-      url: '/attachments',
+      url: apiRoute('/attachments'),
       headers: {
         ...authHeaders(alice.session.accessToken),
         'content-type': `multipart/form-data; boundary=${multipart.boundary}`,
@@ -57,12 +58,13 @@ describe('attachment flows', () => {
     });
 
     expect(uploadResponse.statusCode).toBe(201);
-    const attachment = parseJsonBody<{ id: string }>(uploadResponse.body);
+    const attachment = parseJsonBody<{ downloadPath: string; id: string }>(uploadResponse.body);
     const chatPayload = parseJsonBody<{ id: string }>(chat.body);
+    expect(attachment.downloadPath).toBe(apiRoute(`/attachments/${attachment.id}/download`));
 
     const messageResponse = await context.app.inject({
       method: 'POST',
-      url: `/chats/${chatPayload.id}/messages`,
+      url: apiRoute(`/chats/${chatPayload.id}/messages`),
       headers: authHeaders(alice.session.accessToken),
       payload: {
         attachmentIds: [attachment.id],
@@ -79,7 +81,7 @@ describe('attachment flows', () => {
 
     const downloadResponse = await context.app.inject({
       method: 'GET',
-      url: `/attachments/${attachment.id}/download`,
+      url: attachment.downloadPath,
       headers: authHeaders(alice.session.accessToken),
     });
 
