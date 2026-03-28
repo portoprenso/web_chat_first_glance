@@ -60,7 +60,8 @@ const swaggerSchemaTransform = ({ schema, url }: { schema: unknown; url: string 
     };
   }
 
-  const { response, headers, querystring, body, params, hide, ...rest } = workingSchema;
+  const { response, headers, querystring, body, params, hide, multipartBody, ...rest } =
+    workingSchema;
 
   if (hide) {
     return {
@@ -72,7 +73,7 @@ const swaggerSchemaTransform = ({ schema, url }: { schema: unknown; url: string 
   }
 
   const transformed: Record<string, unknown> = {};
-  const schemas = { headers, querystring, body, params };
+  const schemas = { headers, querystring, body: multipartBody ?? body, params };
 
   Object.entries(schemas).forEach(([key, value]) => {
     if (value) {

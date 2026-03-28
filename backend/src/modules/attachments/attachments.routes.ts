@@ -1,5 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
+import { z } from 'zod';
 
 import {
   attachmentParamsSchema,
@@ -20,6 +21,10 @@ const uploadAttachmentBodySchema = {
   },
 } as const;
 
+// Multipart uploads are consumed through `request.file()`, so runtime body validation
+// only needs to stay compatible with the global Zod validator compiler.
+const uploadAttachmentRuntimeBodySchema = z.unknown();
+
 export const attachmentRoutes: FastifyPluginAsync = (app) => {
   const typed = app.withTypeProvider<ZodTypeProvider>();
 
@@ -31,7 +36,8 @@ export const attachmentRoutes: FastifyPluginAsync = (app) => {
         tags: ['attachments'],
         operationId: 'uploadAttachment',
         consumes: ['multipart/form-data'],
-        body: uploadAttachmentBodySchema,
+        body: uploadAttachmentRuntimeBodySchema,
+        multipartBody: uploadAttachmentBodySchema,
         response: {
           201: attachmentSchema,
           400: errorResponseSchema,
