@@ -14,7 +14,7 @@ services:
       timeout: 5s
       retries: 10
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - "${POSTGRES_DATA_DIR:-./.docker-data/postgres}:/var/lib/postgresql/data"
 
   backend:
     build:
@@ -40,7 +40,7 @@ services:
     volumes:
       - ./backend:/app
       - backend_node_modules:/app/node_modules
-      - backend_storage:/app/storage-data
+      - "${BACKEND_STORAGE_HOST_DIR:-./.docker-data/storage}:/app/storage-data"
 
   frontend:
     build:
@@ -66,7 +66,5 @@ services:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
 
 volumes:
-  postgres_data:
   backend_node_modules:
   frontend_node_modules:
-  backend_storage:

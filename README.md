@@ -57,10 +57,25 @@ Required backend env values are in [backend/.env.example](/Users/home/Desktop/we
 Docker workflow:
 
 ```bash
+cp .env.example .env
 docker compose up --build
 ```
 
-This starts PostgreSQL, backend, frontend, and an `nginx` reverse proxy. Open the app at `http://localhost:8080`; uploaded files persist in the `backend_storage` volume.
+This starts PostgreSQL, backend, frontend, and an `nginx` reverse proxy. Open the app at `http://localhost:8080`.
+
+By default Docker now stores persistent local data in host directories instead of Docker-managed named volumes:
+
+- PostgreSQL data: `./.docker-data/postgres`
+- Uploaded files: `./.docker-data/storage`
+
+That means the database and uploaded files survive container rebuilds and `docker compose down` as long as those host folders remain in place. If you want the data somewhere else on your machine, update `.env` in the repo root:
+
+```bash
+POSTGRES_DATA_DIR=/absolute/path/to/postgres-data
+BACKEND_STORAGE_HOST_DIR=/absolute/path/to/upload-storage
+```
+
+If you already have local data in the old Docker named volumes, Docker will not move it into the new host folders automatically.
 
 To expose the whole app through one `ngrok` tunnel:
 
