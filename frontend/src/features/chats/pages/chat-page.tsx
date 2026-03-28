@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { EmptyState } from '../../../components/empty-state';
@@ -7,15 +8,77 @@ import { formatTimestamp } from '../../../lib/format';
 import { useAuthStore } from '../../../store/auth-store';
 import { MessageComposer } from '../components/message-composer';
 import { MessageList } from '../components/message-list';
-import { useChatMessagesQuery, useChatsQuery } from '../hooks/use-chat-data';
+import { getOrderedMessages, useChatMessagesQuery, useChatsQuery } from '../hooks/use-chat-data';
+
+const AUTO_SCROLL_THRESHOLD_PX = 80;
+
+function isNearBottom(element: HTMLElement): boolean {
+  return element.scrollHeight - element.scrollTop - element.clientHeight <= AUTO_SCROLL_THRESHOLD_PX;
+}
 
 export function ChatPage() {
   const { chatId } = useParams();
   const currentUser = useAuthStore((state) => state.user);
   const chatsQuery = useChatsQuery();
   const messagesQuery = useChatMessagesQuery(chatId);
+  const scrollContainerRef = useRef<HTMLElement | null>(null);
+  const isNearBottomRef = useRef(true);
+  const activeChatIdRef = useRef<string | null>(null);
+  const lastTailMessageIdRef = useRef<string | null>(null);
 
   const activeChat = chatsQuery.data?.items.find((chat) => chat.id === chatId) ?? null;
+  const messages = getOrderedMessages(messagesQuery.data);
+  const lastMessage = messages[messages.length - 1] ?? null;
+  const lastMessageId = lastMessage?.id ?? null;
+  const lastMessageSenderId = lastMessage?.sender.id ?? null;
+
+  useLayoutEffect(() => {
+    const nextChatId = chatId ?? null;
+    const previousChatId = activeChatIdRef.current;
+    const previousTailMessageId = lastTailMessageIdRef.current;
+    const container = scrollContainerRef.current;
+
+    if (!container) {
+      activeChatIdRef.current = nextChatId;
+      lastTailMessageIdRef.current = lastMessageId;
+      return;
+    }
+
+    const didChatChange = previousChatId !== nextChatId;
+    const didTailMessageChange = previousTailMessageId !== lastMessageId;
+
+    if (didChatChange) {
+      isNearBottomRef.current = true;
+    }
+
+    const shouldScrollToBottom =
+      lastMessageId !== null &&
+      (didChatChange ||
+        (didTailMessageChange &&
+          (lastMessageSenderId === currentUser?.id || isNearBottomRef.current)));
+
+    if (shouldScrollToBottom) {
+      container.scrollTop = container.scrollHeight;
+      isNearBottomRef.current = true;
+    }
+
+    if (lastMessageId === null) {
+      isNearBottomRef.current = true;
+    }
+
+    activeChatIdRef.current = nextChatId;
+    lastTailMessageIdRef.current = lastMessageId;
+  }, [chatId, currentUser?.id, lastMessageId, lastMessageSenderId]);
+
+  const handleMessageHistoryScroll = () => {
+    const container = scrollContainerRef.current;
+
+    if (!container) {
+      return;
+    }
+
+    isNearBottomRef.current = isNearBottom(container);
+  };
 
   if (!chatId) {
     return (
@@ -49,7 +112,7 @@ export function ChatPage() {
       <header className="rounded-[1.75rem] border border-white/10 bg-white/5 px-5 py-4">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Direct chat</p>
+            <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Direct chat DURA</p>
             <h1 className="mt-2 text-2xl font-semibold text-white">
               {activeChat.participant.displayName}
             </h1>
@@ -64,7 +127,12 @@ export function ChatPage() {
         </div>
       </header>
 
-      <section className="mt-4 flex-1 overflow-y-auto pr-2">
+      <section
+        aria-label="Message history"
+        className="mt-4 flex-1 overflow-y-auto pr-2"
+        onScroll={handleMessageHistoryScroll}
+        ref={scrollContainerRef}
+      >
         {messagesQuery.isLoading ? <Loader label="Loading messages…" /> : null}
         {messagesQuery.isError ? (
           <ErrorState

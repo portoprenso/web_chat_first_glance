@@ -21,6 +21,15 @@ export function useChatMessagesQuery(chatId?: string) {
   });
 }
 
+export function getOrderedMessages(data: InfiniteData<MessagePage> | undefined): Message[] {
+  return data
+    ? data.pages
+        .slice()
+        .reverse()
+        .flatMap((page) => page.items)
+    : [];
+}
+
 export function upsertMessagePageData(
   current: InfiniteData<MessagePage> | undefined,
   message: Message,

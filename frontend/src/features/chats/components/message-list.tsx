@@ -2,6 +2,7 @@ import type { InfiniteData } from '@tanstack/react-query';
 
 import { EmptyState } from '../../../components/empty-state';
 import type { MessagePage } from '../api';
+import { getOrderedMessages } from '../hooks/use-chat-data';
 import { MessageItem } from './message-item';
 
 export function MessageList({
@@ -17,12 +18,7 @@ export function MessageList({
   isFetchingNextPage: boolean;
   onLoadOlder: () => void;
 }) {
-  const messages = data
-    ? data.pages
-        .slice()
-        .reverse()
-        .flatMap((page) => page.items)
-    : [];
+  const messages = getOrderedMessages(data);
 
   if (messages.length === 0) {
     return (
