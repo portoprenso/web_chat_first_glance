@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, type KeyboardEvent } from 'react';
 import type { InfiniteData } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
@@ -8,6 +8,14 @@ import { upsertMessagePageData } from '../hooks/use-chat-data';
 import { chatKeys } from '../query-keys';
 
 const MAX_ATTACHMENTS = 5;
+
+function shouldSendOnEnter(): boolean {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+    return false;
+  }
+
+  return window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+}
 
 export function MessageComposer({ chatId }: { chatId: string }) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -49,6 +57,32 @@ export function MessageComposer({ chatId }: { chatId: string }) {
 
   const canSend = body.trim().length > 0 || files.length > 0;
 
+  const handleSend = () => {
+    if (!canSend || sendMutation.isPending) {
+      return;
+    }
+
+    sendMutation.mutate();
+  };
+
+  const handleBodyKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (
+      event.key !== 'Enter' ||
+      event.shiftKey ||
+      event.altKey ||
+      event.ctrlKey ||
+      event.metaKey ||
+      event.repeat ||
+      event.nativeEvent.isComposing ||
+      !shouldSendOnEnter()
+    ) {
+      return;
+    }
+
+    event.preventDefault();
+    handleSend();
+  };
+
   return (
     <div className="rounded-[1.75rem] border border-white/10 bg-slate-900/80 p-4 shadow-panel">
       {files.length > 0 ? (
@@ -70,6 +104,7 @@ export function MessageComposer({ chatId }: { chatId: string }) {
         className="min-h-[96px] w-full resize-none rounded-3xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-white outline-none transition focus:border-amber-400"
         maxLength={2000}
         onChange={(event) => setBody(event.target.value)}
+        onKeyDown={handleBodyKeyDown}
         placeholder="Write a message…"
         value={body}
       />
@@ -99,7 +134,7 @@ export function MessageComposer({ chatId }: { chatId: string }) {
         <button
           className="rounded-full bg-amber-400 px-5 py-2 text-sm font-semibold text-slate-950 transition hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-60"
           disabled={!canSend || sendMutation.isPending}
-          onClick={() => sendMutation.mutate()}
+          onClick={handleSend}
           type="button"
         >
           {sendMutation.isPending ? 'Sending…' : 'Send message'}
