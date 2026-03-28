@@ -19,29 +19,43 @@ export async function listMessages(
 ) {
   await ensureChatAccess({ prisma: deps.prisma }, input.chatId, input.userId);
 
-  let cursorMessageCreatedAt: Date | undefined;
+  let cursorMessage:
+    | {
+        id: string;
+        chatId: string;
+        createdAt: Date;
+      }
+    | null = null;
 
   if (input.cursor) {
-    const cursorMessage = await deps.prisma.message.findUnique({
+    cursorMessage = await deps.prisma.message.findUnique({
       where: { id: input.cursor },
-      select: { chatId: true, createdAt: true },
+      select: { id: true, chatId: true, createdAt: true },
     });
 
     if (!cursorMessage || cursorMessage.chatId !== input.chatId) {
       throw new AppError(400, 'INVALID_CURSOR', 'Message cursor is invalid for this chat.');
     }
-
-    cursorMessageCreatedAt = cursorMessage.createdAt;
   }
 
   const messages = await deps.prisma.message.findMany({
     where: {
       chatId: input.chatId,
-      ...(cursorMessageCreatedAt
+      ...(cursorMessage
         ? {
-            createdAt: {
-              lt: cursorMessageCreatedAt,
-            },
+            OR: [
+              {
+                createdAt: {
+                  lt: cursorMessage.createdAt,
+                },
+              },
+              {
+                createdAt: cursorMessage.createdAt,
+                id: {
+                  lt: cursorMessage.id,
+                },
+              },
+            ],
           }
         : {}),
     },
@@ -49,18 +63,18 @@ export async function listMessages(
       sender: true,
       attachments: true,
     },
-    orderBy: {
-      createdAt: 'desc',
-    },
+    orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
     take: input.limit + 1,
   });
 
   const hasMore = messages.length > input.limit;
-  const slice = hasMore ? messages.slice(0, input.limit) : messages;
+  const page = hasMore ? messages.slice(0, input.limit) : messages;
+  const items = page.slice().reverse();
 
   return {
-    items: slice.reverse().map(toMessageDto),
-    nextCursor: hasMore ? (slice[slice.length - 1]?.id ?? null) : null,
+    items: items.map(toMessageDto),
+    // The next page loads messages older than the oldest message we just returned.
+    nextCursor: hasMore ? (items[0]?.id ?? null) : null,
   };
 }
 
