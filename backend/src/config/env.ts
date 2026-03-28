@@ -3,8 +3,10 @@ import { z } from 'zod';
 
 loadDotEnv();
 
+const nodeEnvSchema = z.enum(['development', 'test', 'production']);
+
 const envSchema = z.object({
-  NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+  NODE_ENV: nodeEnvSchema.default('development'),
   PORT: z.coerce.number().int().positive().default(3000),
   DATABASE_URL: z.string().min(1),
   FRONTEND_ORIGIN: z.string().url(),
@@ -29,10 +31,22 @@ export type AppConfig = z.infer<typeof envSchema> & {
 };
 
 export function createConfig(input: NodeJS.ProcessEnv = process.env): AppConfig {
-  const parsed = envSchema.parse(input);
+  const nodeEnv = nodeEnvSchema.parse(input.NODE_ENV ?? 'development');
+  const isProduction = nodeEnv === 'production';
+  const parsed = envSchema.parse({
+    ...input,
+    NODE_ENV: nodeEnv,
+    DATABASE_URL:
+      input.DATABASE_URL ??
+      (isProduction ? undefined : 'postgresql://postgres:postgres@localhost:5432/chat_app?schema=public'),
+    FRONTEND_ORIGIN: input.FRONTEND_ORIGIN ?? (isProduction ? undefined : 'http://localhost:5173'),
+    JWT_ACCESS_SECRET:
+      input.JWT_ACCESS_SECRET ??
+      (isProduction ? undefined : 'development-only-local-jwt-secret-1234'),
+  });
 
   return {
     ...parsed,
-    isProduction: parsed.NODE_ENV === 'production',
+    isProduction,
   };
 }

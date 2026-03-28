@@ -3,6 +3,10 @@
   "private": true,
   "packageManager": "yarn@4.12.0",
   "scripts": {
+    "dev:db": "docker compose up postgres",
+    "dev:backend:init": "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/chat_app?schema=public yarn --cwd backend prisma:generate && DATABASE_URL=postgresql://postgres:postgres@localhost:5432/chat_app?schema=public yarn --cwd backend prisma:deploy",
+    "dev:backend": "yarn --cwd backend dev",
+    "dev:frontend": "yarn --cwd frontend dev",
     "contracts:sync": "yarn --cwd backend generate:openapi && yarn --cwd frontend generate:api-types && yarn --cwd backend generate:ws-types",
     "contracts:check": "yarn contracts:sync && git diff --exit-code -- backend/generated/openapi.json frontend/src/generated/api-types.ts frontend/src/generated/ws-contracts.ts",
     "lint": "yarn --cwd backend lint && yarn --cwd frontend lint",

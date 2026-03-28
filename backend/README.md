@@ -40,6 +40,7 @@ Fastify + TypeScript + Prisma backend for the chat product.
 - Swagger UI is served at `/api/docs`.
 - Health is served at `/api/health`.
 - The Docker workflow puts `nginx` in front of the frontend and backend so the app can be exposed through one public origin.
+- Local backend development does not require a copied `.env` file for the basic loop. Outside production, omitted `DATABASE_URL`, `FRONTEND_ORIGIN`, and `JWT_ACCESS_SECRET` fall back to localhost-friendly defaults.
 
 ## Contract Generation
 
@@ -63,6 +64,8 @@ yarn typecheck
 yarn test
 ```
 
+From the repo root, `yarn dev:backend:init` runs `prisma:generate` and `prisma:deploy` against the default local PostgreSQL URL used by the fast dev loop.
+
 ## Test Notes
 
-Backend tests expect PostgreSQL to be reachable through `DATABASE_URL`. CI provides this through a service container, and the recommended local path is `docker compose up`.
+Backend tests expect PostgreSQL to be reachable through `DATABASE_URL`. CI provides this through a service container, and the recommended local path is either a local PostgreSQL instance or `yarn dev:db` from the repo root.

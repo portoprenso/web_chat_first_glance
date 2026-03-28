@@ -43,16 +43,18 @@ Local host workflow:
 yarn install
 yarn --cwd backend install
 yarn --cwd frontend install
-yarn --cwd backend prisma:generate
-yarn --cwd backend prisma:deploy
+yarn dev:db
+yarn dev:backend:init
 yarn contracts:sync
-yarn --cwd backend dev
-yarn --cwd frontend dev
+yarn dev:backend
+yarn dev:frontend
 ```
 
-Open the app at `http://localhost:5173`. Vite proxies `/api` and `/api/ws` to the backend, so the browser still uses a single origin in local development.
+Open the app at `http://localhost:5173`. In Vite dev mode, the frontend now talks directly to the backend at `http://localhost:3000`, so you do not need `nginx` for the normal local loop. The `docker compose` database container is optional but handy when you want PostgreSQL without installing it locally, and the backend itself can run directly on your machine with localhost-friendly defaults outside production.
 
-Required backend env values are in [backend/.env.example](/Users/home/Desktop/web_chat_first_glance/backend/.env.example). Frontend env overrides are optional and documented in [frontend/.env.example](/Users/home/Desktop/web_chat_first_glance/frontend/.env.example).
+`yarn dev:backend:init` is the local helper for Prisma client generation and migrations against the default localhost database. Run it on first setup and after schema changes.
+
+Backend env overrides are documented in [backend/.env.example](/Users/home/Desktop/web_chat_first_glance/backend/.env.example). Frontend env overrides are optional and documented in [frontend/.env.example](/Users/home/Desktop/web_chat_first_glance/frontend/.env.example).
 
 Docker workflow:
 

@@ -100,7 +100,7 @@ const swaggerSchemaTransform = ({ schema, url }: { schema: unknown; url: string 
 
 export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyInstance> {
   const config = options.config ?? createConfig();
-  const prisma = options.prisma ?? createPrismaClient();
+  const prisma = options.prisma ?? createPrismaClient(config.DATABASE_URL);
   const storage =
     options.storage ?? new LocalFileStorage(path.resolve(process.cwd(), config.STORAGE_DIR));
   const websocketHub = options.websocketHub ?? new WebSocketHub(config);

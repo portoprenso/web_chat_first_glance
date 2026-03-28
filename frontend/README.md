@@ -30,9 +30,10 @@ React + TypeScript + Vite client for the chat product.
 
 ## Runtime Config
 
-- By default, the client uses the current browser origin for HTTP requests and `ws://<current-host>/api/ws` or `wss://<current-host>/api/ws` for realtime.
+- In Vite dev mode and tests, the client talks directly to `http://localhost:3000` and `ws://localhost:3000/api/ws`.
+- In production-style runs, the client uses the current browser origin for HTTP requests and `ws://<current-host>/api/ws` or `wss://<current-host>/api/ws` for realtime.
 - `VITE_API_URL` and `VITE_WS_URL` are optional overrides.
-- During local host development, Vite proxies `/api` and `/api/ws` to `http://localhost:3000`.
+- The Vite dev server still proxies `/api` and `/api/ws` to `http://localhost:3000`, so you can switch back to same-origin local requests by overriding the frontend env values.
 
 ## Commands
 

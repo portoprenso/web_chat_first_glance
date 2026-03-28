@@ -95,8 +95,8 @@ describe('useChatSocket', () => {
       </QueryClientProvider>,
     );
 
-    const expectedSocketUrl = new URL('/api/ws', window.location.origin);
-    expectedSocketUrl.protocol = expectedSocketUrl.protocol === 'https:' ? 'wss:' : 'ws:';
+    const expectedSocketUrl = new URL('/api/ws', 'http://localhost:3000');
+    expectedSocketUrl.protocol = 'ws:';
     expect(latestOptions?.url).toBe(expectedSocketUrl.toString());
 
     latestOptions?.onEvent({
